@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Booked Appointments</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+
+</head>
+<body>
+{% csrf_token %}
+<div class="container">
+    <div class="table-wrapper">
+        <div class="table-title">
+            <div class="row">
+                <div class="col-sm-6">
+
+
+                </div>
+            </div>
+        </div>
+        <table class="table table-striped table-hover">
+                                <h1 class="text-center mt-4" >Booked Appointments</h1>
+
+            <thead>
+                <tr>
+                    <th>Doctor Name</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for slot in availability %}
+                <tr>
+                    <td>{{ slot.doctor_name }}</td>
+                    <td id="dateCell{{ slot.appointment.appointment_id }}">{{ slot.appointment.date }}</td>
+                    <td id="timeCell{{ slot.appointment.appointment_id }}">{{ slot.appointment.time }}</td>
+                    <td>
+                        <a href="#editAvailabilityModal" class="edit" data-toggle="modal" data-slot-id="{{ slot.appointment.appointment_id }}"><i class="material-icons" data-toggle="tooltip" title="Edit">&#xE254;</i></a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4">No availability times found for this doctor.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Modal HTML -->
+<div id="editAvailabilityModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editForm">
+                <div class="modal-header">
+                    <h4 class="modal-title">Update Appointment</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+              <div class="modal-body">
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" class="form-control" required id="dateField">
+            </div>
+            <div class="form-group">
+                <label>Time</label>
+                <input type="time" class="form-control" required id="timeField">
+                <span id="timeMsg" style="color: red;"></span> <!-- Error message for time -->
+            </div>
+        </div>
+                <div class="modal-footer">
+                    <input type="button" class="btn btn-default" data-dismiss="modal" value="Cancel">
+                    <button type="submit" class="btn btn-info" id="saveButton">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+$(document).ready(function() {
+    // Disable past dates
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById("dateField").setAttribute('min', today);
+
+    // Time validation function
+    function validateTime() {
+        var time = $('#timeField').val();
+        var [hours, minutes] = time.split(':').map(Number);
+
+        if (hours < 8 || hours > 20 || (hours === 20 && minutes > 0)) {
+            $('#timeMsg').text('Time should be between 8 AM to 8 PM');
+            return false;
+        } else {
+            $('#timeMsg').text('');
+            return true;
+        }
+    }
+
+    // Enable/Disable save button based on time validation
+    function updateSaveButtonStatus() {
+        var validTime = validateTime();
+        $('#saveButton').prop('disabled', !validTime);
+    }
+
+    // Attach time change event to both validation and button status update functions
+    $('#timeField').on('change', function() {
+        validateTime();
+        updateSaveButtonStatus();
+    });
+
+    // Existing functionality of editing slots
+    var slotId;
+
+    $('.edit').click(function() {
+        slotId = $(this).attr('data-slot-id');
+
+        var currentDate = $('#dateCell' + slotId).text();
+        var currentTime = $('#timeCell' + slotId).text();
+
+        $('#dateField').val(currentDate);
+        $('#timeField').val(currentTime);
+
+        // After updating input fields, perform a time validation
+        updateSaveButtonStatus();
+    });
+
+    $('#editForm').submit(function(e) {
+        e.preventDefault();
+
+        var date = $('#dateField').val();
+        var time = $('#timeField').val();
+
+            var formattedDate = moment(date).format('MMM. D, YYYY');
+            var formattedTime = moment(time, 'HH:mm').format('h:mm a');
+        $.ajax({
+            url: '/myapp/update_booked_availability/' + slotId + '/',
+            type: 'POST',
+            data: {
+                'slot_id': slotId,
+                'date': date,
+                'time': time,
+                'csrfmiddlewaretoken': $('input[name=csrfmiddlewaretoken]').val()
+            },
+            success: function(data) {
+                $('#dateCell' + slotId).text(formattedDate);
+                $('#timeCell' + slotId).text(formattedTime);
+                $('#editAvailabilityModal').modal('hide');
+            },
+            error: function() {
+                console.log('AJAX request error'); // Debugging message
+                alert('Failed to update. Please try again.');
+            }
+        });
+    });
+
+});
+</script>
+
+
+</body>
+</html>

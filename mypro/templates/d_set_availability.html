@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Appointment Form</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style>
+        .field-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .field-container label {
+            width: 100px;
+            text-align: right;
+        }
+        .field-container input {
+            width: 200px;
+            height: 50px;
+            border: 1px solid #ccc;
+        }
+        .bordered-box {
+            border: 2px solid #ccc;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+        }
+    </style>
+    <script>
+        $(function(){
+            const submit_button = $('button[type="submit"]');
+            const start_time_input = $('input[name="start_time"]');
+            const end_time_input = $('input[name="end_time"]');
+            const date_input = $('#date_picker');
+            submit_button.prop('disabled', true);
+
+            const validateTime = function(time, errorMsgElementId) {
+                var timeSplit = time.split(':');
+                var hours = parseInt(timeSplit[0]);
+                var minutes = parseInt(timeSplit[1]);
+                if((hours < 8 || hours > 20) || (hours === 20 && minutes > 0)){
+                    document.getElementById(errorMsgElementId).textContent = 'Please select a time between 08:00 AM to 08:00 PM';
+                    return false;
+                } else {
+                    document.getElementById(errorMsgElementId).textContent = '';
+                    return true;
+                }
+            };
+
+            const validateTimeOrder = function() {
+                if(start_time_input.val() >= end_time_input.val()) {
+                    document.getElementById('timeOrderMsg').textContent = 'End time must be later than start time';
+                    return false;
+                } else {
+                    document.getElementById('timeOrderMsg').textContent = '';
+                    return true;
+                }
+            };
+
+            const validateForm = function() {
+                if(date_input.val() !== '' && start_time_input.val() !== '' && end_time_input.val() !== '') {
+                    const start_time_valid = validateTime(start_time_input.val(), 'startTimeMsg');
+                    const end_time_valid = validateTime(end_time_input.val(), 'endTimeMsg');
+                    const time_order_valid = validateTimeOrder();
+                    submit_button.prop('disabled', !(start_time_valid && end_time_valid && time_order_valid));
+                } else {
+                    submit_button.prop('disabled', true);
+                }
+            };
+
+            $('input[type="time"], input[type="date"]').on('input', validateForm);
+
+            var today = new Date();
+            var yyyy = today.getFullYear();
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            var dd = String(today.getDate()).padStart(2, '0');
+            today = yyyy + '-' + mm + '-' + dd;
+            date_input.attr('min',today);
+
+            $('form').on('submit', function(event) {
+                event.preventDefault();
+                 var form = $(this);
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: $(this).attr('method'),
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        if (response.result === 'success') {
+                            $('#successModal').modal('show');
+                             form[0].reset();  // Reset form fields
+
+
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <h2>Set Availability</h2>
+    <form action="{% url 'd_set_availability' %}" method="post">
+        {% csrf_token %}
+        <div class="bordered-box center">
+            <div class="field-container">
+                <label for="date_picker">Date:</label>
+                <input id="date_picker" type="date" class="form-control bg-light border-0 datetimepicker-input" name="date"
+                       placeholder="Availability Date" data-target="#date1" data-toggle="datetimepicker">
+            </div>
+            <br>
+            <div class="field-container">
+                <label for="start_time">Start Time:</label>
+                <input type="time" id="start_time" name="start_time" class="form-control bg-light border-0 timepicker-input"
+                       placeholder="Start Time" data-target="#time1" data-toggle="timepicker">
+            </div>
+            <span id="startTimeMsg" style="color: red;"></span>
+            <br>
+            <div class="field-container">
+                <label for="end_time">End Time:</label>
+                <input type="time" id="end_time" name="end_time" class="form-control bg-light border-0 timepicker-input"
+                       placeholder="End Time" data-target="#time2" data-toggle="timepicker">
+            </div>
+            <span id="endTimeMsg" style="color: red;"></span>
+            <br>
+            <span id="timeOrderMsg" style="color: red;"></span>
+            <br>
+            <div style="display: flex; justify-content: center; gap: 20px;">
+                <button class="btn btn-dark" type="submit" style="height: 55px; width: 200px;">Submit</button>
+                <button class="btn btn-dark" type="reset" style="height: 55px; width: 200px;">Cancel</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="successModalLabel">Success</h5>
+                </div>
+                <div class="modal-body">
+                    Set availability successfully.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
