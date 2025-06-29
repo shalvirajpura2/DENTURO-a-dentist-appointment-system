@@ -838,3 +838,8 @@ def check_appointment_time(request):
         else:
             return JsonResponse({'is_valid_time': False,
                                  'error_message': "The selected time is outside of the default working hours (8am to 8pm)."})
+
+
+def debug_url(request):
+    from django.http import HttpResponse
+    return HttpResponse(f"You hit: {request.path}")

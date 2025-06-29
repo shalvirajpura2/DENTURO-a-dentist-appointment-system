@@ -76,4 +76,20 @@ class service_tab(models.Model):
     class Meta:
         db_table = 'service_tab'
 
+# Basic specialities for doctors
+BASIC_SPECIALITIES = [
+    'General Dentistry',
+    'Orthodontics (Braces & Alignment)',
+    'Pediatric Dentistry (Children)',
+    'Periodontics (Gum Specialist)',
+    'Endodontics (Root Canal Specialist)',
+    'Prosthodontics (Crowns, Bridges, Dentures)',
+    'Oral & Maxillofacial Surgery',
+    'Cosmetic Dentistry (Veneers, Whitening)',
+    'Oral Radiology',
+    'Public Health Dentistry',
+    'Implantology',
+    'Oral Pathology',
+]
+
 

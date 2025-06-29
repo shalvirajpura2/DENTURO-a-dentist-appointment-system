@@ -1,4 +1,4 @@
-# DENTURO-a-dentist-appointment-system
+# DENTURO: Dentist Appointment System
 
 Denturo is a dentist appointment system built using Django. It allows dentists to create accounts and manage their profiles, while patients can book and manage their own appointments. Each user type has its own dedicated dashboard for managing their activities.
 
@@ -44,3 +44,43 @@ The server will start, and you can access the website at `http://localhost:8000/
 - **Dentists** can create accounts and manage their profiles.
 - **Patients** can book appointments with dentists and manage their own appointments.
 - Both user types have their own dashboards for managing activities.
+
+## Render Deployment Instructions
+
+### 1. Environment Variables
+Create a `.env` file in the root of your project with the following variables:
+
+```
+DJANGO_SECRET_KEY=your-secret-key
+DJANGO_DEBUG=False
+DJANGO_ALLOWED_HOSTS=your-app.onrender.com
+MYSQL_DATABASE=dentcare_db
+MYSQL_USER=your-db-user
+MYSQL_PASSWORD=your-db-password
+MYSQL_HOST=your-db-host
+MYSQL_PORT=3306
+EMAIL_HOST_USER=your-email@example.com
+EMAIL_HOST_PASSWORD=your-email-password
+```
+
+### 2. Static Files
+Render will collect static files into the `staticfiles/` directory. Make sure you run:
+
+```
+python manage.py collectstatic
+```
+
+### 3. Database
+Set up a MySQL database on Render and update the environment variables above with the credentials.
+
+### 4. Procfile
+The `Procfile` is already set up for Gunicorn:
+```
+web: gunicorn mypro.mypro.wsgi
+```
+
+### 5. Deploy
+- Push your code to a GitHub repository.
+- Create a new Web Service on Render, connect your repo, and set the build/run commands as needed.
+- Add the environment variables in the Render dashboard.
+- Deploy!

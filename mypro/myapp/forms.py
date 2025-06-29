@@ -1,13 +1,14 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import patient_registration, doctor_change_time
+from .models import patient_registration, doctor_change_time, BASIC_SPECIALITIES
 
 
 class LoginForm(forms.Form):
    username = forms.CharField(max_length = 100)
    password = forms.CharField(widget = forms.PasswordInput())
    email = forms.EmailField(max_length=100)
+
 class RegistrationForm(forms.Form):
    fistname = forms.CharField(max_length=50)
 
@@ -29,3 +30,14 @@ class NewPatientForm(UserCreationForm):
 		if commit:
 			user.save()
 		return user
+
+class DoctorRegistrationForm(forms.Form):
+    doctor_name = forms.CharField(max_length=100)
+    area = forms.CharField(max_length=100)
+    address = forms.CharField(max_length=100)
+    clinic_name = forms.CharField(max_length=100)
+    speciality = forms.ChoiceField(choices=[(s, s) for s in BASIC_SPECIALITIES])
+    contact_no = forms.CharField(max_length=13)
+    email_id = forms.EmailField(max_length=100)
+    username = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput())
